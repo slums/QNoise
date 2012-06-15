@@ -43,6 +43,7 @@ MainWindow::MainWindow()
 void MainWindow::createPointers()
 {
     myDatabase = new CDatabase(this);
+    myLibrary = new CLibrary(this);
     myLastFm = new CLastFm(this, myDatabase);
     myLyrics = new CLyrics(this, myDatabase);
 
@@ -467,8 +468,9 @@ void MainWindow::currentSongStateChanged(Phonon::State newState, Phonon::State o
         ui->lovePlusButton->hide();
         ui->lyrics_textBrowser->clear();
 
-        // if (addToLast) addCurrentSongToLastFmQueue();
-        if (addToLast) myLastFm->addSongToQueue(currentSong->metaData().value("TITLE"), currentSong->metaData().value("ARTIST"), currentSong->metaData().value("ALBUM"));
+        if (oldState == Phonon::PlayingState) {
+            if (addToLast) myLastFm->addSongToQueue(currentSong->metaData().value("TITLE"), currentSong->metaData().value("ARTIST"), currentSong->metaData().value("ALBUM"));
+        }
     }
 }
 

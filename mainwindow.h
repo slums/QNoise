@@ -4,6 +4,7 @@
 #include "cdatabase.h"
 #include "clastfm.h"
 #include "clyrics.h"
+#include "clibrary.h"
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -76,6 +77,7 @@ private:
     CDatabase *myDatabase;
     CLastFm *myLastFm;
     CLyrics *myLyrics;
+    CLibrary *myLibrary;
 
 public:
     bool isCurrentSongFavourite();

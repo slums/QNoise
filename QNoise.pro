@@ -15,13 +15,15 @@ SOURCES += main.cpp\
     clyrics.cpp \
     clastfm.cpp \
     cdatabase.cpp \
-    cnetworkaccessmanager.cpp
+    cnetworkaccessmanager.cpp \
+    clibrary.cpp
 
 HEADERS  += mainwindow.h \
     clyrics.h \
     clastfm.h \
     cdatabase.h \
-    cnetworkaccessmanager.h
+    cnetworkaccessmanager.h \
+    clibrary.h
 
 FORMS    += mainwindow.ui
 
