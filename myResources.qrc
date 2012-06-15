@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/myIcons">
+        <file alias="note">gfx/17.png</file>
+        <file alias="love">gfx/57.png</file>
+        <file alias="stop">gfx/91.png</file>
+        <file alias="previous">gfx/92.png</file>
+        <file alias="pause">gfx/93.png</file>
+        <file alias="next">gfx/94.png</file>
+        <file alias="add">gfx/95.png</file>
+        <file alias="lyrics">gfx/43.png</file>
+        <file alias="refresh">gfx/48.png</file>
+        <file alias="clear">gfx/118.png</file>
+        <file alias="play">gfx/98.png</file>
+        <file alias="info">gfx/65.png</file>
+        <file alias="settings">gfx/11.png</file>
+        <file alias="facebook">gfx/facebook.png</file>
+        <file alias="google">gfx/google.png</file>
+        <file alias="lastfm">gfx/lastfm.png</file>
+        <file alias="mute">gfx/113.png</file>
+        <file alias="volume">gfx/114.png</file>
+        <file alias="love+">gfx/55.png</file>
+        <file alias="love-">gfx/56.png</file>
+        <file alias="cutielogo">gfx/cutie.png</file>
+    </qresource>
+</RCC>
