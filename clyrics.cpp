@@ -21,7 +21,8 @@ void CLyrics::replyFinished(QNetworkReply *pReply)
 
     if (pReply->url().toString().contains("api.php"))
     {
-        QRegExp myRegExp(".+</strong>");
+        // qDebug() << "LYRICS API CONTENT: " << content;
+        QRegExp myRegExp(".+<strong>url: </strong>");
         content.remove(myRegExp);
         myRegExp = QRegExp("</li>.+");
         content.remove(myRegExp);
@@ -40,11 +41,11 @@ void CLyrics::replyFinished(QNetworkReply *pReply)
             myManager->get(QNetworkRequest(QUrl::fromEncoded(tmpByteArray)));
         }
     }
-    else if (content.contains("&lt;/lyrics&gt"))
+    else if (content.contains("&lt;/lyrics>"))
     {
-        QRegExp myRegExp("&lt;/lyrics&gt;.+");
+        QRegExp myRegExp("&lt;/lyrics>.+");
         content.remove(myRegExp);
-        myRegExp = QRegExp(".+&lt;lyrics&gt;");
+        myRegExp = QRegExp(".+&lt;lyrics>");
         content.remove(myRegExp);
         myRegExp = QRegExp("\\s*$");
         content.remove(myRegExp);
@@ -59,5 +60,6 @@ void CLyrics::replyFinished(QNetworkReply *pReply)
     {
         qDebug() << "There was some error with lyrics, sorry...";
         emit lyricsChanged("There was some error with lyrics, sorry...");
+        qDebug() << "Lyrics C O N T E N T :" << content;
     }
 }
