@@ -92,6 +92,28 @@ void CLastFm::updateNowPlaying(QString title, QString artist, QString album)
     }
 }
 
+void CLastFm::addSongToLoveQueue(QString title, QString artist, QString album)
+{
+    myLoveQueue[0] << artist;
+    myLoveQueue[1] << title;
+    myLoveQueue[2] << album;
+
+    if ( (db->getLastFmOnline()) && (getIsSessionOK()) ) {
+        loveSongs();
+    }
+}
+
+void CLastFm::addSongToUnloveQueue(QString title, QString artist, QString album)
+{
+    myUnloveQueue[0] << artist;
+    myUnloveQueue[1] << title;
+    myUnloveQueue[2] << album;
+
+    if ( (db->getLastFmOnline()) && (getIsSessionOK()) ) {
+        unloveSongs();
+    }
+}
+
 void CLastFm::addSongToQueue(QString title, QString artist, QString album)
 {
     myLastQueue[0] << artist;
@@ -219,6 +241,18 @@ void CLastFm::managerReply(QNetworkReply *pReply, QString mtd)
     else if (mtd == "track.love")
     {
         qDebug() << "I got track.love response...";
+
+        if (content.contains("status=\"ok\""))
+        {
+            if (!myLoveQueue[0].isEmpty()) {
+                myLoveQueue[0].removeAt(0);
+                myLoveQueue[1].removeAt(0);
+                myLoveQueue[2].removeAt(0);
+            }
+            if (!myLoveQueue[0].isEmpty()) {
+                loveSongs();
+            }
+        }
     }
 
     // ============ //
@@ -228,6 +262,18 @@ void CLastFm::managerReply(QNetworkReply *pReply, QString mtd)
     else if (mtd == "track.unlove")
     {
         qDebug() << "I got track.unlove response...";
+
+        if (content.contains("status=\"ok\""))
+        {
+            if (!myUnloveQueue[0].isEmpty()) {
+                myUnloveQueue[0].removeAt(0);
+                myUnloveQueue[1].removeAt(0);
+                myUnloveQueue[2].removeAt(0);
+            }
+            if (!myUnloveQueue[0].isEmpty()) {
+                unloveSongs();
+            }
+        }
     }
 
     // ============== //
@@ -300,6 +346,58 @@ void CLastFm::managerReply(QNetworkReply *pReply, QString mtd)
     // if (size1 > 0) popMyQ();
 }
 
+void CLastFm::loveSongs()
+{
+    QString tmpSig, tmpMd5Sig;
+    QByteArray tmpByteArray;
+    QByteArray postData;
+
+    postData.append("method=track.love&");
+    postData.append("api_key="+lastFmApiKey+"&");
+    postData.append("sk="+lastFmSessionKey+"&");
+
+    QString artist, title;
+    artist = myLoveQueue[0][0];
+    title = myLoveQueue[1][0];
+    postData.append("artist="+artist+"&");
+    postData.append("track="+title+"&");
+
+    tmpSig = "api_key" + lastFmApiKey + "artist" + artist + "methodtrack.love" + "sk" + lastFmSessionKey + "track" + title + lastFmApiSecret;
+    tmpByteArray.append(tmpSig);
+    tmpMd5Sig = QCryptographicHash::hash(tmpByteArray, QCryptographicHash::Md5).toHex();
+    postData.append("api_sig="+tmpMd5Sig);
+
+    methods.append("track.love");
+    bytearrays.append(postData);
+    popMyQ();
+}
+
+void CLastFm::unloveSongs()
+{
+    QString tmpSig, tmpMd5Sig;
+    QByteArray tmpByteArray;
+    QByteArray postData;
+
+    postData.append("method=track.unlove&");
+    postData.append("api_key="+lastFmApiKey+"&");
+    postData.append("sk="+lastFmSessionKey+"&");
+
+    QString artist, title;
+    artist = myUnloveQueue[0][0];
+    title = myUnloveQueue[1][0];
+    postData.append("artist="+artist+"&");
+    postData.append("track="+title+"&");
+
+    tmpSig = "api_key" + lastFmApiKey + "artist" + artist + "methodtrack.unlove" + "sk" + lastFmSessionKey + "track" + title + lastFmApiSecret;
+    tmpByteArray.append(tmpSig);
+    tmpMd5Sig = QCryptographicHash::hash(tmpByteArray, QCryptographicHash::Md5).toHex();
+    postData.append("api_sig="+tmpMd5Sig);
+
+    methods.append("track.unlove");
+    bytearrays.append(postData);
+    popMyQ();
+}
+
 void CLastFm::scrobbleSongs()
 {
     QString tmpSig, tmpMd5Sig;
@@ -341,4 +439,11 @@ void CLastFm::scrobbleSongs()
     methods.append("track.scrobble");
     bytearrays.append(postData);
     popMyQ();
+}
+
+void CLastFm::updateEverything()
+{
+    if (!myLoveQueue[0].isEmpty()) loveSongs();
+    if (!myUnloveQueue[0].isEmpty()) unloveSongs();
+    if (!myLastQueue[0].isEmpty()) scrobbleSongs();
 }

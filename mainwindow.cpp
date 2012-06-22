@@ -105,20 +105,10 @@ void MainWindow::lastReply(QString reply)
     ui->lastFm_textBrowser->append(reply);
 }
 
-//
 void MainWindow::updateLastFm()
 {
-    /*if ( (myDatabase->getLastFmOnline()) && (myLastFm->getIsSessionOK()) )
-    {
-        if (!myLastQueue[0].isEmpty()) lastFmScrobbleSongs();
-        if (!myLastFavQueue[0].isEmpty()) lastFmLoveSongs();
-        if (!myLastUnfavQueue[0].isEmpty()) lastFmUnloveSongs();
-        if (currentSong->state() == Phonon::PlayingState) lastFmUpdateNowPlaying();
-    }*/
+    myLastFm->updateEverything();
 }
-//
-
-
 
 void MainWindow::updateButtonClicked()
 {
@@ -291,10 +281,8 @@ void MainWindow::loveMinusButtonPressed()
     myLastUnfavQueue[0] << currentSong->metaData().value("ARTIST");
     myLastUnfavQueue[1] << currentSong->metaData().value("TITLE");
     myLastUnfavQueue[2] << currentSong->metaData().value("ALBUM");
-    if ( (myDatabase->getLastFmOnline()) && (myLastFm->getIsSessionOK()) )
-    {
-        // lastFmUnloveSongs();
-    }
+
+    myLastFm->addSongToUnloveQueue(currentSong->metaData().value("TITLE"), currentSong->metaData().value("ARTIST"), currentSong->metaData().value("ALBUM"));
 
     // DAWID
     // usunąć tą piosenkę z ulubionych w bibliotece
@@ -312,10 +300,8 @@ void MainWindow::lovePlusButtonPressed()
     ui->loveMinusButton->show();
     ui->loveLabel->setGeometry(((640 - ui->statusLabel->width())/2)-24, 15, 16, 16);
     ui->loveLabel->show();
-    if ( (myDatabase->getLastFmOnline()) && (myLastFm->getIsSessionOK()) )
-    {
-        // lastFmLoveSongs();
-    }
+
+    myLastFm->addSongToLoveQueue(currentSong->metaData().value("TITLE"), currentSong->metaData().value("ARTIST"), currentSong->metaData().value("ALBUM"));
 
     // DAWID
     // dodać tą piosenkę do ulubionych w bibliotece
@@ -556,236 +542,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-/*
-
-void MainWindow::lastFmAddReplyFinished(QNetworkReply* pReply)
-{
-
-    QByteArray data=pReply->readAll();
-    QString content(data);
-
-    ui->lastFm_textBrowser->setText(content);
-
-    if (content.contains("status=\"ok\""))
-    {
-        // QRegExp myRegExp(".+<key>");
-        // content.remove(myRegExp);
-        // myRegExp = QRegExp("</key>.+");
-        // content.remove(myRegExp);
-
-    }
-    else displayWarning("There was an error sending \"Now Playing\" to Last.fm");
-}
-
-void MainWindow::lastFmScrobbleReplyFinished(QNetworkReply* pReply)
-{
-
-    QByteArray data=pReply->readAll();
-    QString content(data);
-    int oldSize = myLastQueue[0].size();
-    int newSize;
-
-    ui->lastFm_textBrowser->setText(content);
-
-    if (content.contains("status=\"ok\""))
-    {
-            if (myLastQueue[0].size() > 10)
-            {
-                for (int i = 0 ; i <= 9 ; i++)
-                {
-                    myLastQueue[0].removeAt(0);
-                    myLastQueue[1].removeAt(0);
-                    myLastQueue[2].removeAt(0);
-                    myLastQueue[3].removeAt(0);
-                }
-                newSize = myLastQueue[0].size();
-                lastFmSent = lastFmSent + (oldSize - newSize);
-                QString tmpS;
-                tmpS.setNum(lastFmSent);
-                ui->lastFm_sentLabel->setText("Sent : "+tmpS);
-                lastFmQueued = lastFmQueued - (oldSize - newSize);
-                tmpS.setNum(lastFmQueued);
-                ui->lastFm_queuedLabel->setText("Queued : "+tmpS);
-
-                lastFmScrobbleSongs();
-            }
-            else
-            {
-                int tmpSize = myLastQueue[0].size();
-                for (int i = 0 ; i < tmpSize ; i++)
-                {
-                    myLastQueue[0].removeAt(0);
-                    myLastQueue[1].removeAt(0);
-                    myLastQueue[2].removeAt(0);
-                    myLastQueue[3].removeAt(0);
-                }
-                if ( (currentSong->state() == Phonon::PlayingState) || (currentSong->state() == Phonon::PausedState) )
-                    lastFmUpdateNowPlaying();
-                newSize = myLastQueue[0].size();
-                lastFmSent = lastFmSent + (oldSize - newSize);
-                QString tmpS;
-                tmpS.setNum(lastFmSent);
-                ui->lastFm_sentLabel->setText("Sent : "+tmpS);
-                lastFmQueued = lastFmQueued - (oldSize - newSize);
-                tmpS.setNum(lastFmQueued);
-                ui->lastFm_queuedLabel->setText("Queued : "+tmpS);
-            }
-
-    }
-    else displayWarning("There was an error sending track(s) to Last.fm");
-}
-
-void MainWindow::lastFmScrobbleSongs()
-{
-    QString tmpSig, tmpMd5Sig;
-    QByteArray tmpByteArray;
-    QByteArray postData;
-
-    postData.append("method=track.scrobble&");
-    postData.append("api_key="+lastFmApiKey+"&");
-    postData.append("sk="+lastFmSessionKey+"&");
-
-    QString tmp1, tmp2, tmp3, tmp4;
-    for (int i = 0 ; i <= 9 ; i++)
-    {
-        if (i < myLastQueue[0].size())
-        {
-            QString artist = myLastQueue[0][i];
-            QString title = myLastQueue[1][i];
-            QString album = myLastQueue[2][i];
-            QString timestamp = myLastQueue[3][i];
-            QString tmpIndex;
-            tmpIndex.setNum(i);
-
-            postData.append("artist["+tmpIndex+"]="+artist+"&");
-            postData.append("track["+tmpIndex+"]="+title+"&");
-            postData.append("album["+tmpIndex+"]="+album+"&");
-            postData.append("timestamp["+tmpIndex+"]="+timestamp+"&");
-            tmp1 = tmp1 + "album["+tmpIndex+"]" + album;
-            tmp2 = tmp2 + "artist["+tmpIndex+"]" + artist;
-            tmp3 = tmp3 + "timestamp["+tmpIndex+"]" + timestamp;
-            tmp4 = tmp4 + "track["+tmpIndex+"]" + title;
-        }
-    }
-
-    tmpSig = tmp1 + "api_key" + lastFmApiKey + tmp2 + "methodtrack.scrobble" + "sk" + lastFmSessionKey + tmp3 + tmp4 + lastFmApiSecret;
-    tmpByteArray.append(tmpSig);
-    tmpMd5Sig = QCryptographicHash::hash(tmpByteArray, QCryptographicHash::Md5).toHex();
-    postData.append("api_sig="+tmpMd5Sig);
-    lastFmScrobbleManager->post(QNetworkRequest(QUrl(lastFmServer)), postData);
-
-}
-
-void MainWindow::addCurrentSongToLastFmQueue()
-{
-    // myLastQueue[0] << currentSong->metaData().value("ARTIST");
-    // myLastQueue[1] << currentSong->metaData().value("TITLE");
-    // myLastQueue[2] << currentSong->metaData().value("ALBUM");
-    // QDateTime tmpTime = QDateTime::currentDateTime();
-    // QString tmpS;
-    // qint64 tmpI;
-    // tmpI = tmpTime.toTime_t();
-    // tmpS.setNum(tmpI);
-    // myLastQueue[3] << tmpS;
-    // lastFmQueued = myLastQueue[0].size();
-    // tmpS.setNum(lastFmQueued);
-    // ui->lastFm_queuedLabel->setText("Queued : "+tmpS);
-    // if ( (myDatabase->getLastFmOnline()) && (myLastFm->getIsSessionOK()) ) lastFmScrobbleSongs();
-
-    myLastFm->addSongToQueue(currentSong->metaData().value("TITLE"), currentSong->metaData().value("ARTIST"), currentSong->metaData().value("ALBUM"));
-}
-
-void MainWindow::lastFmLoveSongs()
-{
-    QString tmpSig, tmpMd5Sig;
-    QByteArray tmpByteArray;
-    QByteArray postData;
-
-    postData.append("method=track.love&");
-    postData.append("api_key="+lastFmApiKey+"&");
-    postData.append("sk="+lastFmSessionKey+"&");
-
-    QString artist, title;
-    artist = myLastFavQueue[0][0];
-    title = myLastFavQueue[1][0];
-    postData.append("artist="+artist+"&");
-    postData.append("track="+title+"&");
-
-    tmpSig = "api_key" + lastFmApiKey + "artist" + artist + "methodtrack.love" + "sk" + lastFmSessionKey + "track" + title + lastFmApiSecret;
-    tmpByteArray.append(tmpSig);
-    tmpMd5Sig = QCryptographicHash::hash(tmpByteArray, QCryptographicHash::Md5).toHex();
-    postData.append("api_sig="+tmpMd5Sig);
-    lastFmLoveManager->post(QNetworkRequest(QUrl(lastFmServer)), postData);
-
-}
-
-void MainWindow::lastFmLoveReplyFinished(QNetworkReply* pReply)
-{
-
-    QByteArray data=pReply->readAll();
-    QString content(data);
-
-    ui->lastFm_textBrowser->setText(content);
-
-    if (content.contains("status=\"ok\""))
-    {
-        myLastFavQueue[0].removeAt(0);
-        myLastFavQueue[1].removeAt(0);
-        myLastFavQueue[2].removeAt(0);
-
-        if (!myLastFavQueue[0].isEmpty())
-        {
-            lastFmLoveSongs();
-        }
-    }
-    else displayWarning("There was an error sending \"Love Song\" to Last.fm");
-}
-
-void MainWindow::lastFmUnloveSongs()
-{
-    QString tmpSig, tmpMd5Sig;
-    QByteArray tmpByteArray;
-    QByteArray postData;
-
-    postData.append("method=track.unlove&");
-    postData.append("api_key="+lastFmApiKey+"&");
-    postData.append("sk="+lastFmSessionKey+"&");
-
-    QString artist, title;
-    artist = myLastUnfavQueue[0][0];
-    title = myLastUnfavQueue[1][0];
-
-    tmpSig = "api_key" + lastFmApiKey + "artist" + artist + "methodtrack.unlove" + "sk" + lastFmSessionKey + "track" + title + lastFmApiSecret;
-    tmpByteArray.append(tmpSig);
-    tmpMd5Sig = QCryptographicHash::hash(tmpByteArray, QCryptographicHash::Md5).toHex();
-    postData.append("api_sig="+tmpMd5Sig);
-    lastFmUnloveManager->post(QNetworkRequest(QUrl(lastFmServer)), postData);
-
-}
-
-void MainWindow::lastFmUnloveReplyFinished(QNetworkReply* pReply)
-{
-
-    QByteArray data=pReply->readAll();
-    QString content(data);
-
-    ui->lastFm_textBrowser->setText(content);
-
-    if (content.contains("status=\"ok\""))
-    {
-        myLastUnfavQueue[0].removeAt(0);
-        myLastUnfavQueue[1].removeAt(0);
-        myLastUnfavQueue[2].removeAt(0);
-
-        if (!myLastUnfavQueue[0].isEmpty())
-        {
-            lastFmUnloveSongs();
-        }
-    }
-    else displayWarning("There was an error sending \"Unlove Song\" to Last.fm");
-}
-*/
 QString MainWindow::makeItSafe(QString oldString)
 {
     oldString.replace("&", "and");

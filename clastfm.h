@@ -31,6 +31,8 @@ private:
     QList<QByteArray> bytearrays;
 
     QStringList myLastQueue[4];
+    QStringList myLoveQueue[3];
+    QStringList myUnloveQueue[3];
     int lastFmSent, lastFmQueued;
 
 public:
@@ -48,9 +50,14 @@ public slots:
     void popMyQ();
     void getSession();
     void updateNowPlaying(QString title, QString artist, QString album);
+    void addSongToLoveQueue(QString title, QString artist, QString album);
+    void addSongToUnloveQueue(QString title, QString artist, QString album);
     void managerReply(QNetworkReply*, QString);
     void addSongToQueue(QString title, QString artist, QString album);
     void scrobbleSongs();
+    void loveSongs();
+    void unloveSongs();
+    void updateEverything();
 
 };
 
